@@ -1,0 +1,8 @@
+boto3
+botocore
+typer
+pandas
+python-dotenv
+pydantic
+reportlab
+
