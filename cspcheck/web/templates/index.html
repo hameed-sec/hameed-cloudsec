@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CSP-Check • Findings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;margin:0;background:#0b1220;color:#e8eefc}
+    header{padding:16px 20px;border-bottom:1px solid #1c2741;background:#0e1630}
+    h1{margin:0;font-size:20px}
+    .wrap{padding:18px 20px}
+    .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+    input,select,button{background:#0e1630;color:#e8eefc;border:1px solid #243054;border-radius:8px;padding:8px 10px}
+    button{cursor:pointer}
+    .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 16px}
+    .kpi{background:#0e1630;border:1px solid #243054;border-radius:10px;padding:10px 12px;font-size:12px}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:12px;border:1px solid #243054;background:#0e1630}
+    th,td{padding:10px 12px;border-bottom:1px solid #1c2741;text-align:left;font-size:12px;vertical-align:top}
+    th{background:#121a36;position:sticky;top:0}
+    tr:hover td{background:#101835}
+    .sev{font-weight:600;padding:2px 8px;border-radius:999px;font-size:11px;display:inline-block}
+    .sev-LOW{color:#9ad};
+    .sev-MEDIUM{background:#3a2c00;color:#ffd24d}
+    .sev-HIGH{background:#3b161b;color:#ff7a86}
+    .sev-CRITICAL{background:#4a1111;color:#ff5a5a}
+    .pill{padding:2px 8px;border:1px solid #243054;border-radius:999px;font-size:11px}
+    .muted{color:#9aa7c7}
+    .actions{display:flex;gap:8px;align-items:center}
+    .footer{margin-top:12px;color:#9aa7c7;font-size:12px}
+    .nowrap{white-space:nowrap}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🛡️ CSP-Check — Findings</h1>
+</header>
+
+<div class="wrap">
+  <form class="bar" method="get">
+    <input type="text" name="q" placeholder="Search title/desc/resource/account…" value="{{ q }}">
+    <select name="severity">
+      <option value="">Severity: All</option>
+      {% for s in ["LOW","MEDIUM","HIGH","CRITICAL"] %}
+        <option value="{{ s }}" {% if severity==s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <select name="service">
+      <option value="">Service: All</option>
+      {% for s in ["s3","security-group","iam-user","iam-access-key"] %}
+        <option value="{{ s }}" {% if service==s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+    <div class="actions">
+      <a href="/download.csv"><button type="button">Download CSV</button></a>
+    </div>
+  </form>
+
+  <div class="kpis">
+    <div class="kpi">Total: <strong>{{ totals.get("ALL", 0) }}</strong></div>
+    <div class="kpi">LOW: <strong>{{ totals.get("LOW", 0) }}</strong></div>
+    <div class="kpi">MEDIUM: <strong>{{ totals.get("MEDIUM", 0) }}</strong></div>
+    <div class="kpi">HIGH: <strong>{{ totals.get("HIGH", 0) }}</strong></div>
+    <div class="kpi">CRITICAL: <strong>{{ totals.get("CRITICAL", 0) }}</strong></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="nowrap">Time (UTC)</th>
+        <th>Severity</th>
+        <th>Title</th>
+        <th>Resource</th>
+        <th>Account</th>
+        <th class="nowrap">Service</th>
+        <th>Description</th>
+        <th>Remediation</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="mono nowrap">{{ r.ts }}</td>
+        <td><span class="sev sev-{{ r.severity }}">{{ r.severity }}</span></td>
+        <td>{{ r.title }}</td>
+        <td class="mono">{{ r.resource_id }}</td>
+        <td class="mono">{{ r.account }}</td>
+        <td><span class="pill">{{ r.resource_type }}</span></td>
+        <td class="muted">{{ r.description }}</td>
+        <td class="muted">{{ r.remediation }}</td>
+      </tr>
+      {% endfor %}
+      {% if rows|length == 0 %}
+      <tr><td colspan="8" class="muted">No findings for current filters.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Showing {{ rows|length }} records. Use filters above to slice & dice. Export CSV for audits.
+  </div>
+</div>
+</body>
+</html>
